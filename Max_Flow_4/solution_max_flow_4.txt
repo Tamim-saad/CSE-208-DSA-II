@@ -1,0 +1,184 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define vec vector<ll>
+#define forr(i,a,b) for(ll i=a;i<b;i++)
+
+#define INF INT_MAX
+#define N 105
+
+
+
+vec adj_list[N];
+vector<vec> edge_cap;
+vector<vec> graph;
+ll parent[N];               
+
+
+
+void addEdge(ll u, ll v, ll c)
+{
+    edge_cap[u][v] = c;
+    adj_list[u].push_back(v);
+    adj_list[v].push_back(u);
+}
+
+
+void reset()
+{
+    forr(i,0,N)
+    {
+        adj_list[i].clear();
+        parent[i] = -1;
+
+        forr(j,0,N)
+        edge_cap[i][j] = graph[i][j] = 0;
+    }
+}
+
+ll bfs(ll source, ll sink)
+{
+    forr(i,0,N)
+    {
+        parent[i] = -1; 
+    }
+
+    queue<ll> que;
+    que.push(source);
+
+    parent[source] = -1;
+    ll mini = INF;
+
+    while (que.empty()==false)
+    {
+        ll curr = que.front();
+        que.pop();
+
+        forr(i,0,adj_list[curr].size())
+        {
+            ll neighbour = adj_list[curr][i];
+            ll remaining_cap=edge_cap[curr][neighbour] - graph[curr][neighbour];
+
+            if (parent[neighbour] == -1  && remaining_cap>0) // If unvisited and capacity is available
+            {
+                parent[neighbour] = curr;
+                mini=min(mini, remaining_cap);
+
+                if (neighbour == sink)
+                    return mini;
+                else
+                    que.push(neighbour);
+            }
+        }
+    }
+    return 0;
+}
+
+ll Edmonds_Karp(ll source, ll sink)
+{
+    ll maxFlow = 0;
+    while(1)
+    {
+        ll curr = sink;
+        ll flow = bfs(source, sink);
+        maxFlow += flow;
+
+        if (flow == 0)
+        {
+            break;
+        }
+        while (curr != source) // Backtrack
+        {
+            ll pre = parent[curr];
+            graph[pre][curr] += flow;
+            graph[curr][pre] -= flow;
+            curr = pre;
+        }
+    }
+    return maxFlow;
+}
+
+int main()
+{
+    ll n,w, l,r;
+    cin >> n;
+
+    ll matches = (n*n - n) / 2;
+    vector<string> teams;
+
+    string name;
+    vector<vec> in_Matrix(n, vec (n));
+    vec wins(n);
+    vec left(n);
+
+    forr(i,0,n)
+    {
+        cin >> name >> w >> l >> r;
+
+        teams.push_back(name);
+        wins[i] = w;
+        left[i] = r;
+
+        forr(j,0,n)
+        {
+            cin >> in_Matrix[i][j];
+        }
+    }
+
+    ll main_source = n+matches+1 ;
+    ll main_sink = n+matches+2 ;
+
+
+    edge_cap.resize(N, vec(N, 0));
+    graph.resize(N, vec(N, 0));
+
+
+    for(ll test_ind=0; test_ind<n; test_ind++)
+    {
+        ll currNode = 0;
+        ll tempFlow = 0;
+
+        forr(i,0,n)
+        {
+
+            for(ll j = i + 1; j < n; j++)
+            {
+                if (i == test_ind || j == test_ind)
+                    continue;
+
+                ll u = main_source;
+                ll v = currNode;
+                ll cap = in_Matrix[i][j];
+
+                addEdge(u, v, cap); // edge from the source to current match node
+                tempFlow += cap;
+
+                u = currNode;       //match_node
+                v = matches + i;    //team_node
+                cap = N;
+                addEdge(u, v, cap); // edge from current match node to 1st team node
+
+                v = matches + j;    //match_node
+                addEdge(u, v, cap); //edge from current match node to 2nd team node
+                currNode++;
+            }
+            ll from = matches + i;  //team_node
+            ll to = main_sink;
+            ll cap = wins[test_ind] + left[test_ind] - wins[i];
+            addEdge(from, to, cap); // edge from 1st team node to the sink
+
+        }
+
+        ll maxFlow = Edmonds_Karp(main_source, main_sink);
+
+        if (maxFlow != tempFlow)    //if equal graph is saturated
+        {
+            cout << endl << teams[test_ind] << " is Eliminated" << endl;
+            cout << "They can win at most " << wins[test_ind] << " + " << left[test_ind] << " = " << wins[test_ind] + left[test_ind] << " matches" << endl;
+        }
+
+        reset();
+    }
+}

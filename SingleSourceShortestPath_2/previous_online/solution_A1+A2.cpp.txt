@@ -1,0 +1,123 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+#define ld long double
+#define ed "\n"
+#define eb emplace_back
+#define pl " "
+#define size size()
+#define mpr make_pair
+#define vec vector<ll>
+#define prllsep cout<<ed<<" ------- "<<ed
+#define forr(i,a,b) for(ll i=a;i<b;i++)
+
+
+
+
+
+
+const ll N = 1e4 + 5;
+const ll INF = 2e5 + 5;
+
+vector <vector<ll>> adj_list(N);
+ll graph[N][N];
+
+map<ll, ll> value;
+map<ll, ll> parent;
+map<ll, ll> ans;
+map<ll, bool> vis;
+
+void Dijkstra(ll n,ll s)
+{  
+
+    for (ll i = 0; i <= n; i++) 
+    {
+        value[i] = INF;
+        ans[i]=LONG_LONG_MAX;
+    }
+
+    priority_queue<pair<ll, ll>, vector<pair<ll, ll>>, greater<pair<ll, ll>>> pq;
+
+    pq.push({0, s});
+    parent[s] = s;
+    value[s] = 0;
+    ans[s]=0;
+    // ans[s]=ans[0]=0;
+
+    while (!pq.empty())
+    {
+        ll curr = pq.top().second;
+        pq.pop();
+
+        if (vis[curr]) continue;
+        vis[curr] = true;
+
+
+        forr(i,0,adj_list[curr].size)
+        {
+            ll neighbour=adj_list[curr][i];
+            if(! vis[neighbour] && value[neighbour]>value[curr]+graph[curr][neighbour])
+            {
+                value[neighbour]=value[curr]+graph[curr][neighbour];
+
+                pq.push({value[neighbour],neighbour});
+
+                //parent[neighbour]=curr;
+                ans[neighbour]=ans[curr]+1;
+            }
+            if(! vis[neighbour] && value[neighbour]==value[curr]+graph[curr][neighbour])
+            {
+                if(ans[neighbour]>ans[curr]+1)
+                {
+                    ans[neighbour]=ans[curr]+1;
+                }
+            }
+        }
+    }
+
+    //cout<<value[d]<<endl;
+    for(ll i=1;i<=n;i++)
+    {
+        cout<<ans[i]<<" ";
+    }
+
+
+
+    // ll child=d;
+
+
+    // vector<ll> v;
+    // while(child!=s)
+    // {
+    //     v.push_back(child);
+    //     child=parent[child];
+    // }
+    // v.push_back(child);
+        
+    // cout<<value[d]<<endl;
+    // for(ll i=v.size-1;i>=0;i--)
+    // {
+    //     cout<<v[i]-1<<" ";
+    // }
+}
+
+int main() {
+    ll n, m,s,d;
+    cin >> n >> m;
+
+    for (ll i = 1; i < m+1; i++)
+    {
+        ll u, v, w;
+        cin >> u >> v >> w;
+        u++;
+        v++;
+
+        adj_list[u].eb(v);
+        graph[u][v] = abs(w);
+    }
+    cin>>s;
+
+    Dijkstra(n,s+1);
+
+}
