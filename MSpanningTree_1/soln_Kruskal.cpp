@@ -172,7 +172,11 @@ public:
   }
 
   int kruskal(int n, vector<vector<int>> edges) {
-
+    for (int i = 0; i < n; i++) {
+      node[i].parent = -1;
+      node[i].rank = 0;
+    }
+    
     sort(edges.begin(), edges.end(), edge_sort());
     priority_queue<vector<int>, vector<vector<int>>, edge_sort> pq;
 
